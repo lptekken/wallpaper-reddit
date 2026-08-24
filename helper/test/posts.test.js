@@ -1,0 +1,7 @@
+﻿const test=require('node:test'),assert=require('node:assert/strict');
+const {normalizeSubreddits,extractPosts,safeImageUrl}=require('../src/posts');
+test('normalizes and deduplicates subreddit names',()=>assert.deepEqual(normalizeSubreddits('r/EarthPorn, /r/CityPorn earthporn'),['EarthPorn','CityPorn']));
+test('rejects invalid subreddit names',()=>assert.throws(()=>normalizeSubreddits('bad-name')));
+test('accepts only HTTPS image URLs',()=>{assert.equal(safeImageUrl('http://x/a.jpg'),null);assert.equal(safeImageUrl('https://x/a.jpg'),'https://x/a.jpg')});
+test('filters and expands gallery posts',()=>{const children=[{data:{id:'a',title:'Gallery',subreddit:'pics',author:'me',score:200,permalink:'/r/pics/a',is_gallery:true,gallery_data:{items:[{media_id:'x'},{media_id:'y'}]},media_metadata:{x:{status:'valid',e:'Image',s:{u:'https://i.redd.it/a.jpg?x=1&amp;y=2'}},y:{status:'valid',e:'Image',s:{u:'https://i.redd.it/b.png'}}}}},{data:{id:'b',is_self:true,score:999}},{data:{id:'c',score:2,url:'https://i.redd.it/c.jpg'}}];const out=extractPosts(children,{minimumScore:100});assert.equal(out.length,2);assert.equal(out[0].id,'a:gallery:0');assert.match(out[0].url,/&y=2/)});
+test('NSFW and video posts are excluded by default',()=>{const base={title:'x',subreddit:'x',author:'x',score:200,permalink:'/x',url:'https://i.redd.it/x.jpg'};assert.equal(extractPosts([{data:{...base,id:'n',over_18:true}},{data:{...base,id:'v',is_video:true}}],{}).length,0)});

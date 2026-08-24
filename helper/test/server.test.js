@@ -1,0 +1,7 @@
+﻿const test=require('node:test'),assert=require('node:assert/strict'),{TtlCache}=require('../src/cache'),{createServer}=require('../src/server');
+function config(){return{clientId:'x',clientSecret:'y',userAgent:'test',port:3847,cacheTtlMs:60000,timeoutMs:1000,allowedOrigins:new Set()}}
+async function running(client,fn){const server=createServer(config(),client);await new Promise(r=>server.listen(0,'127.0.0.1',r));try{return await fn('http://127.0.0.1:'+server.address().port)}finally{await new Promise(r=>server.close(r))}}
+test('TTL cache returns values and evicts oldest',()=>{const c=new TtlCache(1000,1);c.set('a',1);c.set('b',2);assert.equal(c.get('a'),null);assert.equal(c.get('b'),2)});
+test('health endpoint and posts cache work',async()=>{let calls=0;await running({fetchPosts:async()=>{calls++;return[{id:'a',url:'https://i.redd.it/a.jpg'}]}},async base=>{assert.equal((await fetch(base+'/health').then(r=>r.json())).ok,true);const a=await fetch(base+'/posts?subreddits=EarthPorn').then(r=>r.json()),b=await fetch(base+'/posts?subreddits=EarthPorn').then(r=>r.json());assert.equal(a.posts.length,1);assert.equal(b.cached,true);assert.equal(calls,1)})});
+test('invalid subreddit returns 400',async()=>running({fetchPosts:async()=>[]},async base=>assert.equal((await fetch(base+'/posts?subreddits=bad-name')).status,400)));
+test('method and path are rejected',async()=>running({fetchPosts:async()=>[]},async base=>{assert.equal((await fetch(base+'/nope')).status,404);assert.equal((await fetch(base+'/posts',{method:'POST'})).status,405)}));

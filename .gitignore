@@ -1,0 +1,6 @@
+helper/.env
+helper/cache/
+node_modules/
+*.log
+.DS_Store
+Thumbs.db

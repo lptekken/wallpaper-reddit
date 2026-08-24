@@ -1,0 +1,1 @@
+{"name":"reddit-wallpaper-engine","version":"1.0.0","private":true,"scripts":{"start":"node helper/src/server.js","test":"node --test helper/test/*.test.js","check":"node --check helper/src/server.js && node --check helper/src/reddit.js && node --check helper/src/posts.js && node --check wallpaper/app.js"},"engines":{"node":">=18.17"}}

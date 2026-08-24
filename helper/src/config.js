@@ -1,0 +1,5 @@
+﻿const fs=require('node:fs'),path=require('node:path');
+function loadEnv(file=path.join(__dirname,'..','.env')){if(!fs.existsSync(file))return;for(const raw of fs.readFileSync(file,'utf8').split(/\r?\n/)){const line=raw.trim();if(!line||line.startsWith('#'))continue;const i=line.indexOf('=');if(i<1)continue;const key=line.slice(0,i).trim();let value=line.slice(i+1).trim();if((value.startsWith('"')&&value.endsWith('"'))||(value.startsWith("'")&&value.endsWith("'")))value=value.slice(1,-1);if(process.env[key]===undefined)process.env[key]=value}}
+function range(v,f,min,max){const n=Number(v);return Number.isFinite(n)?Math.min(max,Math.max(min,n)):f}
+function getConfig(){loadEnv();return{clientId:process.env.REDDIT_CLIENT_ID||'',clientSecret:process.env.REDDIT_CLIENT_SECRET||'',userAgent:process.env.REDDIT_USER_AGENT||'',port:range(process.env.PORT,3847,1024,65535),cacheTtlMs:range(process.env.CACHE_TTL_SECONDS,600,60,86400)*1000,timeoutMs:range(process.env.REQUEST_TIMEOUT_MS,15000,1000,60000),allowedOrigins:new Set((process.env.ALLOWED_ORIGINS||'').split(';').map(v=>v.trim()).filter(Boolean))}}
+module.exports={getConfig,loadEnv,range};

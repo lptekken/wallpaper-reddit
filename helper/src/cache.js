@@ -1,0 +1,2 @@
+﻿class TtlCache{constructor(ttlMs,maxEntries=100){this.ttlMs=ttlMs;this.maxEntries=maxEntries;this.items=new Map()}get(key){const item=this.items.get(key);if(!item||Date.now()>=item.expiresAt){this.items.delete(key);return null}return item.value}set(key,value){if(this.items.size>=this.maxEntries&&!this.items.has(key))this.items.delete(this.items.keys().next().value);this.items.set(key,{value,expiresAt:Date.now()+this.ttlMs})}clear(){this.items.clear()}}
+module.exports={TtlCache};
